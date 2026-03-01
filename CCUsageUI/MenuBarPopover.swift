@@ -2,26 +2,31 @@ import SwiftUI
 
 struct MenuBarPopover: View {
     @EnvironmentObject var usageService: UsageService
-    @State private var showingDetail = false
 
     var body: some View {
         VStack(spacing: 12) {
             headerView
 
-            HStack(spacing: 16) {
-                usageBar
-                statsView
-            }
-            .frame(height: 180)
+            HStack(alignment: .top, spacing: 0) {
+                // Left column: bar chart + stats
+                VStack(spacing: 12) {
+                    usageBar
+                    statsView
+                }
+                .frame(width: 100)
 
-            if showingDetail {
+                Divider()
+                    .padding(.horizontal, 12)
+
+                // Right column: ccusage output
                 detailView
             }
+            .frame(height: 380)
 
             footerView
         }
         .padding(16)
-        .frame(width: 320)
+        .frame(width: 920)
     }
 
     private var headerView: some View {
@@ -29,9 +34,7 @@ struct MenuBarPopover: View {
             Text("Claude Usage")
                 .font(.headline)
             Spacer()
-            Button {
-                NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-            } label: {
+            SettingsLink {
                 Image(systemName: "gearshape")
                     .foregroundStyle(.secondary)
             }
@@ -42,16 +45,13 @@ struct MenuBarPopover: View {
     private var usageBar: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
-                // Background
                 RoundedRectangle(cornerRadius: 8)
                     .fill(Color(nsColor: .separatorColor))
 
-                // Filled portion
                 RoundedRectangle(cornerRadius: 8)
                     .fill(barColor)
                     .frame(height: geometry.size.height * fillAmount)
 
-                // Threshold markers
                 ForEach(thresholdMarkers, id: \.0) { marker in
                     Rectangle()
                         .fill(Color(nsColor: .tertiaryLabelColor))
@@ -59,48 +59,29 @@ struct MenuBarPopover: View {
                         .offset(y: -geometry.size.height * CGFloat(marker.1 / 100) + geometry.size.height / 2)
                 }
             }
-            .onTapGesture {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    showingDetail.toggle()
-                }
-            }
         }
-        .frame(width: 48)
-        .help("Click to show details")
+        .frame(width: 36)
     }
 
     private var statsView: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Spacer()
+        VStack(alignment: .center, spacing: 8) {
+            let cost = String(format: "$%.2f", usageService.currentCost)
+            let budget = String(format: "$%.0f", usageService.dailyBudget)
+            let pct = String(format: "%.1f", usageService.percentage)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Today's Cost")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(String(format: "$%.2f", usageService.currentCost))
-                    .font(.title2.monospacedDigit())
+            Text("\(pct)%")
+                .font(.title2.monospacedDigit())
+                .fontWeight(.bold)
+                .foregroundStyle(barColor)
+
+            VStack(spacing: 2) {
+                Text(cost)
+                    .font(.caption.monospacedDigit())
                     .fontWeight(.semibold)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Budget")
-                    .font(.caption)
+                Text("of \(budget)")
+                    .font(.caption2)
                     .foregroundStyle(.secondary)
-                Text(String(format: "$%.0f", usageService.dailyBudget))
-                    .font(.body.monospacedDigit())
             }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Usage")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(String(format: "%.1f%%", usageService.percentage))
-                    .font(.title3.monospacedDigit())
-                    .fontWeight(.medium)
-                    .foregroundStyle(barSwiftUIColor)
-            }
-
-            Spacer()
         }
     }
 
@@ -116,12 +97,11 @@ struct MenuBarPopover: View {
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(height: 160)
             .padding(8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color(nsColor: .textBackgroundColor))
             .clipShape(RoundedRectangle(cornerRadius: 6))
         }
-        .transition(.opacity.combined(with: .move(edge: .top)))
     }
 
     private var footerView: some View {
@@ -162,10 +142,6 @@ struct MenuBarPopover: View {
     }
 
     private var barColor: Color {
-        Color(nsColor: usageService.usageColor.color)
-    }
-
-    private var barSwiftUIColor: Color {
         Color(nsColor: usageService.usageColor.color)
     }
 
