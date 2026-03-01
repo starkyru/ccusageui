@@ -1,0 +1,23 @@
+name: CCUsageUI
+options:
+  bundleIdPrefix: com.ccusageui
+  deploymentTarget:
+    macOS: "14.0"
+  xcodeVersion: "16.0"
+
+targets:
+  CCUsageUI:
+    type: application
+    platform: macOS
+    sources:
+      - CCUsageUI
+    settings:
+      base:
+        INFOPLIST_FILE: CCUsageUI/Info.plist
+        CODE_SIGN_ENTITLEMENTS: CCUsageUI/CCUsageUI.entitlements
+        PRODUCT_BUNDLE_IDENTIFIER: com.ccusageui.CCUsageUI
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.9"
+        CODE_SIGN_STYLE: Automatic
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
