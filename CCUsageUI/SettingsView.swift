@@ -2,7 +2,6 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var usageService: UsageService
-    @AppStorage("dailyBudget") private var dailyBudget: Double = 100.0
     @AppStorage("greenThreshold") private var greenThreshold: Double = 50
     @AppStorage("yellowThreshold") private var yellowThreshold: Double = 70
     @AppStorage("redThreshold") private var redThreshold: Double = 90
@@ -10,17 +9,6 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Budget") {
-                HStack {
-                    Text("Daily Budget ($)")
-                    Spacer()
-                    TextField("Budget", value: $dailyBudget, format: .number)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 100)
-                        .multilineTextAlignment(.trailing)
-                }
-            }
-
             Section("Color Thresholds (%)") {
                 thresholdRow(label: "Green → Yellow", color: .green, value: $greenThreshold)
                 thresholdRow(label: "Yellow → Red", color: .yellow, value: $yellowThreshold)
@@ -40,10 +28,15 @@ struct SettingsView: View {
                 }
             }
 
+            Section {
+                Text("Token limits are auto-detected from your ccusage history.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             HStack {
                 Spacer()
                 Button("Apply") {
-                    usageService.dailyBudget = dailyBudget
                     usageService.greenThreshold = greenThreshold
                     usageService.yellowThreshold = yellowThreshold
                     usageService.redThreshold = redThreshold
@@ -55,7 +48,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 380, height: 400)
+        .frame(width: 380, height: 360)
     }
 
     private func thresholdRow(label: String, color: Color, value: Binding<Double>) -> some View {

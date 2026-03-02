@@ -10,18 +10,10 @@ struct CCUsageUIApp: App {
             MenuBarPopover()
                 .environmentObject(usageService)
         } label: {
-            let pct = Int(usageService.percentage)
-            let color = usageService.usageColor.color
-            let img = NSImage(systemSymbolName: "square.fill", accessibilityDescription: "usage")!
-            let config = NSImage.SymbolConfiguration(pointSize: 16, weight: .bold)
-            let colored = img.withSymbolConfiguration(config)!
-
-            HStack(spacing: 4) {
-                Image(nsImage: tinted(image: colored, color: color))
-                Text("\(pct)%")
-                    .monospacedDigit()
-                    .font(.system(.body, design: .rounded, weight: .medium))
-            }
+            Image(nsImage: dualBarIcon(
+                leftColor: usageService.sessionColor.color,
+                rightColor: usageService.weeklyColor.color
+            ))
         }
         .menuBarExtraStyle(.window)
 
@@ -31,14 +23,27 @@ struct CCUsageUIApp: App {
         }
     }
 
-    private func tinted(image: NSImage, color: NSColor) -> NSImage {
-        let tinted = image.copy() as! NSImage
-        tinted.lockFocus()
-        color.set()
-        let rect = NSRect(origin: .zero, size: tinted.size)
-        rect.fill(using: .sourceAtop)
-        tinted.unlockFocus()
-        tinted.isTemplate = false
-        return tinted
+    private func dualBarIcon(leftColor: NSColor, rightColor: NSColor) -> NSImage {
+        let barWidth: CGFloat = 5
+        let barHeight: CGFloat = 14
+        let gap: CGFloat = 2
+        let totalWidth = barWidth * 2 + gap
+        let size = NSSize(width: totalWidth, height: barHeight)
+
+        let image = NSImage(size: size, flipped: false) { _ in
+            let leftRect = NSRect(x: 0, y: 0, width: barWidth, height: barHeight)
+            let leftPath = NSBezierPath(roundedRect: leftRect, xRadius: 2, yRadius: 2)
+            leftColor.setFill()
+            leftPath.fill()
+
+            let rightRect = NSRect(x: barWidth + gap, y: 0, width: barWidth, height: barHeight)
+            let rightPath = NSBezierPath(roundedRect: rightRect, xRadius: 2, yRadius: 2)
+            rightColor.setFill()
+            rightPath.fill()
+
+            return true
+        }
+        image.isTemplate = false
+        return image
     }
 }
